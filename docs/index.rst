@@ -24,14 +24,12 @@ Table of Contents
 .. toctree::
     :caption: Tutorials
 
-.. todo:: Add any Learn guide links here. If there are none, then simply delete this todo and leave
-    the toctree above for use later.
+    Adafruit Qualia ESP32-S3 for RGB-666 Displays <https://learn.adafruit.com/adafruit-qualia-esp32-s3-for-rgb666-displays>
 
 .. toctree::
     :caption: Related Products
 
-.. todo:: Add any product links here. If there are none, then simply delete this todo and leave
-    the toctree above for use later.
+    Round RGB 666 TTL TFT Display - 2.1" 480x480 - Capacitive Touch - TL021WVC02CT-B1323 <https://www.adafruit.com/product/5792>
 
 .. toctree::
     :caption: Other Links
