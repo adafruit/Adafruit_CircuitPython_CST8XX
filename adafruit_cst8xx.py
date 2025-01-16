@@ -53,6 +53,7 @@ _CST_REG_PROJID = const(0xA9)
 _CST_REG_CHIPTYPE = const(0xAA)
 
 _CHIP_ID_CST826 = const(0x11)
+_CHIP_ID_CST836 = const(0x13)
 
 # Untested Chip IDs which may use different registers
 # If future chips do use different registers, it would be best to
@@ -80,7 +81,7 @@ class Adafruit_CST8XX:
         fw_version, _, _, chip_type = struct.unpack("<HBBH", chip_data)
         print("fw_version: {:02X}, chip_type: {:02X}".format(fw_version, chip_type))
 
-        if chip_type not in (_CHIP_ID_CST826,):
+        if chip_type not in (_CHIP_ID_CST826, _CHIP_ID_CST836):
             raise RuntimeError("Did not find CST8XX chip")
 
         if debug:
