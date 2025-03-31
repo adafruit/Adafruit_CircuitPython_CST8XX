@@ -48,6 +48,7 @@ _CST_REG_NUMTOUCHES = const(0x02)
 _CST_REG_TOUCHDATA = const(0x03)
 _CST_REG_SLEEP = const(0xA5)
 _CST_REG_FIRMVERS = const(0xA6)
+_CST_REG_CHIPID_816 = const(0xA7)
 _CST_REG_MODID = const(0xA8)
 _CST_REG_PROJID = const(0xA9)
 _CST_REG_CHIPTYPE = const(0xAA)
@@ -77,14 +78,20 @@ class Adafruit_CST8XX:
 
         chip_data = self._read(_CST_REG_FIRMVERS, 6)  # don't wait for IRQ
         # print("chip_data: {%x}".format(chip_data))
-        fw_version, _, _, chip_type = struct.unpack("<HBBH", chip_data)
-        print("fw_version: {:02X}, chip_type: {:02X}".format(fw_version, chip_type))
-
-        if chip_type not in (_CHIP_ID_CST826,):
-            raise RuntimeError("Did not find CST8XX chip")
-
         if debug:
-            print("Firmware vers %04X" % int(fw_version))
+            fw_version, _, _, chip_type = struct.unpack("<HBBH", chip_data)
+            print("fw_version: {:02X}, chip_type: {:02X}".format(fw_version, chip_type))
+
+        if chip_data[1] in (_CHIP_ID_CST816S, _CHIP_ID_CST816T, _CHIP_ID_CST816D):
+            # this is a CST816x
+            if debug:
+                print("CST816 chip found")
+        elif chip_data[5] in (_CHIP_ID_CST826,):
+            # this is a CST826
+            if debug:
+                print("CST826 chip found")
+        else:
+            raise RuntimeError("Did not find supported CST8XX chip")
 
     @property
     def touched(self) -> int:
