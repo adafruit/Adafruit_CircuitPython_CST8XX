@@ -31,7 +31,6 @@ Implementation Notes
 import struct
 
 from adafruit_bus_device.i2c_device import I2CDevice
-
 from micropython import const
 
 try:
@@ -80,13 +79,13 @@ class Adafruit_CST8XX:
         # print("chip_data: {%x}".format(chip_data))
         if debug:
             fw_version, _, _, chip_type = struct.unpack("<HBBH", chip_data)
-            print("fw_version: {:02X}, chip_type: {:02X}".format(fw_version, chip_type))
+            print(f"fw_version: {fw_version:02X}, chip_type: {chip_type:02X}")
 
-        if chip_data[1] in (_CHIP_ID_CST816S, _CHIP_ID_CST816T, _CHIP_ID_CST816D):
+        if chip_data[1] in {_CHIP_ID_CST816S, _CHIP_ID_CST816T, _CHIP_ID_CST816D}:
             # this is a CST816x
             if debug:
                 print("CST816 chip found")
-        elif chip_data[5] in (_CHIP_ID_CST826,):
+        elif chip_data[5] in {_CHIP_ID_CST826}:
             # this is a CST826
             if debug:
                 print("CST826 chip found")
@@ -111,7 +110,7 @@ class Adafruit_CST8XX:
             data = self._read(_CST_REG_TOUCHDATA, touchcount * 6, irq_pin=self._irq_pin)
 
             if self._debug:
-                print("touchcount: {}".format(touchcount))
+                print(f"touchcount: {touchcount}")
 
             for i in range(touchcount):
                 point_data = data[i * 6 : i * 6 + 6]
@@ -127,9 +126,7 @@ class Adafruit_CST8XX:
                 y &= 0x0FFF
                 point = {"x": x, "y": y, "touch_id": touch_id, "event_id": event_id}
                 if self._debug:
-                    print(
-                        f"touch_id: {touch_id}, x: {x}, y: {y}, event: {EVENTS[event_id]}"
-                    )
+                    print(f"touch_id: {touch_id}, x: {x}, y: {y}, event: {EVENTS[event_id]}")
                 touchpoints.append(point)
         return touchpoints
 
@@ -145,15 +142,15 @@ class Adafruit_CST8XX:
 
             i2c.readinto(result)
             if self._debug:
-                print("\t$%02X => %s" % (register, [hex(i) for i in result]))
+                print(f"\t${register:02X} => {[hex(i) for i in result]}")
             return result
 
     def _write(self, register, values) -> None:
         """Writes an array of 'length' bytes to the 'register'"""
         with self._i2c as i2c:
             values = [(v & 0xFF) for v in [register] + values]
-            print("register: %02X, value: %02X" % (values[0], values[1]))
+            print(f"register: {values[0]:02X}, value: {values[1]:02X}")
             i2c.write(bytes(values))
 
             if self._debug:
-                print("\t$%02X <= %s" % (values[0], [hex(i) for i in values[1:]]))
+                print(f"\t${values[0]:02X} <= {[hex(i) for i in values[1:]]}")

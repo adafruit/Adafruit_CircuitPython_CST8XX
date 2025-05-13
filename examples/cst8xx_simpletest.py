@@ -5,6 +5,7 @@
 
 
 import board
+
 import adafruit_cst8xx
 
 ctp = adafruit_cst8xx.Adafruit_CST8XX(board.I2C())
