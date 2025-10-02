@@ -53,6 +53,7 @@ _CST_REG_PROJID = const(0xA9)
 _CST_REG_CHIPTYPE = const(0xAA)
 
 _CHIP_ID_CST826 = const(0x11)
+_CHIP_ID_CST836 = const(0x13)
 
 # Untested Chip IDs which may use different registers
 # If future chips do use different registers, it would be best to
@@ -89,6 +90,10 @@ class Adafruit_CST8XX:
             # this is a CST826
             if debug:
                 print("CST826 chip found")
+        elif chip_data[5] in {_CHIP_ID_CST836}:
+            # this is a CST826
+            if debug:
+                print("CST836 chip found")
         else:
             raise RuntimeError("Did not find supported CST8XX chip")
 
