@@ -31,7 +31,6 @@ Implementation Notes
 import struct
 
 from adafruit_bus_device.i2c_device import I2CDevice
-
 from micropython import const
 
 try:
@@ -48,6 +47,7 @@ _CST_REG_NUMTOUCHES = const(0x02)
 _CST_REG_TOUCHDATA = const(0x03)
 _CST_REG_SLEEP = const(0xA5)
 _CST_REG_FIRMVERS = const(0xA6)
+_CST_REG_CHIPID_816 = const(0xA7)
 _CST_REG_MODID = const(0xA8)
 _CST_REG_PROJID = const(0xA9)
 _CST_REG_CHIPTYPE = const(0xAA)
@@ -78,14 +78,24 @@ class Adafruit_CST8XX:
 
         chip_data = self._read(_CST_REG_FIRMVERS, 6)  # don't wait for IRQ
         # print("chip_data: {%x}".format(chip_data))
-        fw_version, _, _, chip_type = struct.unpack("<HBBH", chip_data)
-        print("fw_version: {:02X}, chip_type: {:02X}".format(fw_version, chip_type))
-
-        if chip_type not in (_CHIP_ID_CST826, _CHIP_ID_CST836):
-            raise RuntimeError("Did not find CST8XX chip")
-
         if debug:
-            print("Firmware vers %04X" % int(fw_version))
+            fw_version, _, _, chip_type = struct.unpack("<HBBH", chip_data)
+            print(f"fw_version: {fw_version:02X}, chip_type: {chip_type:02X}")
+
+        if chip_data[1] in {_CHIP_ID_CST816S, _CHIP_ID_CST816T, _CHIP_ID_CST816D}:
+            # this is a CST816x
+            if debug:
+                print("CST816 chip found")
+        elif chip_data[5] in {_CHIP_ID_CST826}:
+            # this is a CST826
+            if debug:
+                print("CST826 chip found")
+        elif chip_data[5] in {_CHIP_ID_CST836}:
+            # this is a CST826
+            if debug:
+                print("CST836 chip found")
+        else:
+            raise RuntimeError("Did not find supported CST8XX chip")
 
     @property
     def touched(self) -> int:
@@ -105,7 +115,7 @@ class Adafruit_CST8XX:
             data = self._read(_CST_REG_TOUCHDATA, touchcount * 6, irq_pin=self._irq_pin)
 
             if self._debug:
-                print("touchcount: {}".format(touchcount))
+                print(f"touchcount: {touchcount}")
 
             for i in range(touchcount):
                 point_data = data[i * 6 : i * 6 + 6]
@@ -121,9 +131,7 @@ class Adafruit_CST8XX:
                 y &= 0x0FFF
                 point = {"x": x, "y": y, "touch_id": touch_id, "event_id": event_id}
                 if self._debug:
-                    print(
-                        f"touch_id: {touch_id}, x: {x}, y: {y}, event: {EVENTS[event_id]}"
-                    )
+                    print(f"touch_id: {touch_id}, x: {x}, y: {y}, event: {EVENTS[event_id]}")
                 touchpoints.append(point)
         return touchpoints
 
@@ -139,15 +147,15 @@ class Adafruit_CST8XX:
 
             i2c.readinto(result)
             if self._debug:
-                print("\t$%02X => %s" % (register, [hex(i) for i in result]))
+                print(f"\t${register:02X} => {[hex(i) for i in result]}")
             return result
 
     def _write(self, register, values) -> None:
         """Writes an array of 'length' bytes to the 'register'"""
         with self._i2c as i2c:
             values = [(v & 0xFF) for v in [register] + values]
-            print("register: %02X, value: %02X" % (values[0], values[1]))
+            print(f"register: {values[0]:02X}, value: {values[1]:02X}")
             i2c.write(bytes(values))
 
             if self._debug:
-                print("\t$%02X <= %s" % (values[0], [hex(i) for i in values[1:]]))
+                print(f"\t${values[0]:02X} <= {[hex(i) for i in values[1:]]}")
