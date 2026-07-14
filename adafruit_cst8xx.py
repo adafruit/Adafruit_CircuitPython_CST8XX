@@ -63,6 +63,9 @@ _CHIP_ID_CST816T = const(0xB5)
 _CHIP_ID_CST816D = const(0xB6)
 _CHIP_ID_CST820 = const(0xB7)
 
+# Newer controller reports 0x00 at the chip-ID register (0xA7)
+_CHIP_ID_ZERO = const(0x00)
+
 EVENTS = ("PRESS", "RELEASE", "TOUCHING")
 
 
@@ -82,10 +85,17 @@ class Adafruit_CST8XX:
             fw_version, _, _, chip_type = struct.unpack("<HBBH", chip_data)
             print(f"fw_version: {fw_version:02X}, chip_type: {chip_type:02X}")
 
-        if chip_data[1] in {_CHIP_ID_CST816S, _CHIP_ID_CST816T, _CHIP_ID_CST816D}:
+        chip_id = chip_data[1]  # 0xA7
+        firmware_present = chip_data[2] != 0 or chip_data[3] != 0  # 0xA8/0xA9
+
+        if chip_id in {_CHIP_ID_CST816S, _CHIP_ID_CST816T, _CHIP_ID_CST816D}:
             # this is a CST816x
             if debug:
                 print("CST816 chip found")
+        elif chip_id == _CHIP_ID_ZERO and firmware_present:
+            # 0xA8/0xA9 firmware version
+            if debug:
+                print("CST8XX chip (ID 0x00) found")
         elif chip_data[5] in {_CHIP_ID_CST826}:
             # this is a CST826
             if debug:
